@@ -1,10 +1,36 @@
-import { CHANGE_CURRENCY_AMOUNT, SWAP_CURRENCY } from '../actions/currencies';
+import {
+  CHANGE_CURRENCY_AMOUNT,
+  SWAP_CURRENCY,
+  CHANGE_BASE_CURRENCY,
+  CHANGE_QUOTE_CURRENCY,
+  GET_INITIAL_STATE,
+  CONVERSION_RESULT,
+  CONVERSION_ERROR
+} from '../actions/currencies';
 
 const initialState = {
   baseCurrency: 'USD',
   quoteCurrency: 'GBP',
   amount: 100,
-  conversion: {}
+  conversions: {},
+  error: null
+};
+
+const setConversion = (state, action) => {
+  let conversion = {
+    isFetching: true,
+    date: '',
+    rates: {}
+  };
+
+  if (state.conversions[action.currency]) {
+    conversion = state.conversions[action.currency];
+  }
+
+  return {
+    ...state,
+    [action.currency]: conversion
+  };
 };
 
 const reducer = (state = initialState, action) => {
@@ -16,6 +42,40 @@ const reducer = (state = initialState, action) => {
         ...state,
         baseCurrency: state.quoteCurrency,
         quoteCurrency: state.baseCurrency
+      };
+    case CHANGE_BASE_CURRENCY:
+      return {
+        ...state,
+        baseCurrency: action.currency,
+        conversion: setConversion(state, action)
+      };
+    case CHANGE_QUOTE_CURRENCY:
+      return {
+        ...state,
+        quoteCurrency: action.currency,
+        conversion: setConversion(state, action)
+      };
+    case GET_INITIAL_STATE:
+      return {
+        ...state,
+        conversions: setConversion(state, { currency: state.baseCurrency })
+      };
+    case CONVERSION_RESULT:
+      return {
+        ...state,
+        baseCurrency: action.result.base,
+        conversions: {
+          ...state.conversions,
+          [action.result.base]: {
+            isFetching: false,
+            ...action.result
+          }
+        }
+      };
+    case CONVERSION_ERROR:
+      return {
+        ...state,
+        error: state.error
       };
     default:
       return state;

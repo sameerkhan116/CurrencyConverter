@@ -28,6 +28,3 @@ export default () => (
     </AlertProvider>
   </Provider>
 );
-// export default () => <CurrencyList />;
-// export default () => <Options />;
-// export default () => <Themes />;
